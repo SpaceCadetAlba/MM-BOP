@@ -2,8 +2,12 @@
 % - Double check error cases
 % - Simplify variables
 % - markerNames parsing logic?
+% - make normalisation optional - add 
 
-function [audio, Fs, res, markerTimes_s, markerNames] = loadResource(wavName, csvName)
+% Done since last version:
+% - return wav filename with path.
+
+function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName)
 
 % This function loads a wav file containing instrument capture of a
 % series of onsets, and a csv file containing marker metadata from reaper,
@@ -25,7 +29,7 @@ function [audio, Fs, res, markerTimes_s, markerNames] = loadResource(wavName, cs
 % Audio resolution, double, res
 % Markers at vector of time in seconds, double vector: markerTimes_s
 % Marker names, cell array: markerNames
-
+% Wav filename (including path), character array: audio_fileName
 % ----------------
 
 % Load audio file
@@ -46,6 +50,10 @@ wavMetadata = audioinfo(wavName);
 % MATLAB wants audiowrite to specify BitsPerSample or will default to
 % 16-bit with associated quantisation
 res = wavMetadata.BitsPerSample;
+
+% Return the audio filename. This includes the path, which means we can
+% save our output to the same folder as input audio file
+audio_fileName = wavMetadata.Filename;
 
 % This part doesnt seem like it should be needed - more a catch for people
 % making matlab errors handling wavs than anything else - it is sensible
@@ -75,6 +83,12 @@ if wavMetadata.NumChannels > 2
         'The script will use the first channel of the input audio file and continue.'])
     audio = audio(:,1);
 end
+
+% Normalisation
+% --------
+normOffset = -6; % Lets normalise to -6dB
+normOffset = db2mag(normOffset); % Convert to magnitude
+audio = audio * (normOffset/max(abs(audio))); % normalisation to specified threshold
 
 % Load Marker File
 % --------
