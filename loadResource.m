@@ -7,7 +7,7 @@
 % Done since last version:
 % - return wav filename with path.
 
-function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName)
+function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel)
 
 % This function loads a wav file containing instrument capture of a
 % series of onsets, and a csv file containing marker metadata from reaper,
@@ -21,6 +21,7 @@ function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadReso
 % --------
 % Audio file name, string: wavName
 % Reaper markers csv filename, string: csvName
+% Normalisation level in dBFS, double: normLevel
 %
 % Return
 % --------
@@ -86,8 +87,7 @@ end
 
 % Normalisation
 % --------
-normOffset = -6; % Lets normalise to -6dB
-normOffset = db2mag(normOffset); % Convert to magnitude
+normOffset = db2mag(normLevel); % Convert to magnitude
 audio = audio * (normOffset/max(abs(audio))); % normalisation to specified threshold
 
 % Load Marker File

@@ -1,31 +1,24 @@
-% Input Variables - should be all we need
+% ----------------------------------------------------------------
+% Initialise Input Variables - should be all we need
 wavName = "testAudio.wav";
 csvName = "testMarkers.csv";
+normLevel = -3;
+% ----------------------------------------------------------------
 
+% ----------------------------------------------------------------
 % Load in our audio and markers using the function loadResource
-[audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName);
+[audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel);
+% ----------------------------------------------------------------
 
+% ----------------------------------------------------------------
 % Plot our audio --------
-
-% Generate time axis
-timeAxis = (1:length(audio))./Fs;
-
-% Plot our audio
-figAudio = figure;
-plot(timeAxis, audio);
-ylim([-1 1]) % standard audio sample range
-xlim([0 length(audio)/Fs]) % zero to end sample of audio
+plotAudio(audio, Fs, audio_fileName);
+% ----------------------------------------------------------------
 
 
-title("Input .wav file", 'FontSize', 24); % A sensible title
-xlabel("Time, seconds"); % And sensible axis names
-ylabel("Amplitude");
-ax = gca;
-ax.FontName = "Times"; % Times font standard
-ax.FontSize = 24;
-figAudio.WindowState = 'maximized'; % Keep everything the same size
-figAudio_fileName = sprintf("%s_fullwav.pdf", audio_fileName); % Generate a filename
-exportgraphics(figAudio, figAudio_fileName, 'Resolution', 600); % Save hi-res pdf graphic
+
+
+
 
 % MIR Onsets
 % ----------------
