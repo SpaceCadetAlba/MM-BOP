@@ -15,9 +15,9 @@ timeAxis = (1:length(audio))./Fs;
 
 % Plot our audio
 figAudio = figure;
-plot(timeAxis, audio);
-ylim([-1 1]) % standard audio sample range
-xlim([0 length(audio)/Fs]) % zero to end sample of audio
+plot(timeAxis, audio, 'k-');
+ylim([-1 1]); % standard audio sample range
+xlim([0 length(audio)/Fs]); % zero to end sample of audio
 title('Audio and Onsets', 'FontSize', 24); % A sensible title
 xlabel("Time, seconds"); % And sensible axis names
 ylabel("Amplitude");

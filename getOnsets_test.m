@@ -29,13 +29,8 @@ plotOnsets(audio, Fs, audio_fileName, onsets);
 tempoSamples = getTempo(onsets, beatDivisions);
 % ----------------------------------------------------------------
 
-% Plot the tempo trace
-% get a list of tempo sample times
-tempoTimes = onsets(2:end);
-figure;
-plot(tempoTimes, tempoSamps);
-ylim([mean(tempoSamps)-20 mean(tempoSamps)+20]);
-title('Tempo');
-xlabel('time, s');
-ylabel('BPM');
-xlim([0 length(audio)/Fs]);
+% ----------------------------------------------------------------
+% Get the tempo samples for each onset interval --------
+plotTempo(tempoSamples, onsets, audio, Fs, audio_fileName)
+% ----------------------------------------------------------------
+
