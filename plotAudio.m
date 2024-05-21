@@ -1,4 +1,4 @@
-function plotAudio(audio, Fs, audio_fileName)
+function plotOnsets(audio, Fs, audio_fileName, )
 % This function plots audio with a title based on the wav filename, and
 % saves a 600dpi (journal spec) graphic as pdf. Note that a mono audio file is expected.
 % Stereo audio files will be summed to mono. > 2ch audio files will just use ch1. ~PC

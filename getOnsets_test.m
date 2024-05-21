@@ -1,8 +1,9 @@
 % ----------------------------------------------------------------
 % Initialise Input Variables - should be all we need
-wavName = "testAudio.wav";
-csvName = "testMarkers.csv";
-normLevel = -3;
+wavName = "testAudio.wav"; % our audio file
+csvName = "testMarkers.csv"; % our csv of markers for reaper
+normLevel = -3; % our normalisation level in dBFs
+windowSize = 0.2; % size of onset search window in s, try to use 0.2 for MIR framesize safety
 % ----------------------------------------------------------------
 
 % ----------------------------------------------------------------
@@ -10,29 +11,39 @@ normLevel = -3;
 [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel);
 % ----------------------------------------------------------------
 
+
 % ----------------------------------------------------------------
-% Plot our audio --------
-plotAudio(audio, Fs, audio_fileName);
+% Get our onsets --------
+onsets = getOnsets(windowSize, audio, Fs, markerTimes_s);
 % ----------------------------------------------------------------
 
 
+% ----------------------------------------------------------------
+% Plot our audio and Onsets --------
+plotOnsets(audio, Fs, audio_fileName, onsets);
+% ----------------------------------------------------------------
 
+% Get the tempo
 
+tempoSamps = zeros(length(onsets)-1, 1);
+for i = 1:length(onsets)-1
+    x = onsets(i);
+    xx = onsets(i+1);
+    % Get our interval
+    onsetInterval = xx - x;
+    % BPM = (60/(onsetInterval))*(beatInterval/1)
+    beatInterval = 1; % using single beats for now
+    BPM = (60/onsetInterval) * beatInterval;
+    tempoSamps(i) = BPM;
+end
 
-
-% MIR Onsets
-% ----------------
-% We want to grab a window from the audio file based upon markers
-% We want to convert that window of audio to a miraudio object
-% We want to run mironsets on that miraudio() object
-% We want to use mirgetdata() to return the estimated onset times
-% This process will return a vector of doubles, giving onset times in
-% seconds
-% We then need the safety check: Do we just have one onset per window?
-% - Does our vector have more than one row?
-% If it does...(this seems like a fair way of forcing a single value
-% return)
-% - Check the amplitude at the t for each predicted onset in the window
-% - Select the onset time estimate relating to the largest amplitude.
-% - Return that onset value
-% So we can do this with a switch case, either size = 1 or it does not.
+% Plot the tempo trace
+% get a list of tempo sample times
+tempoTimes = onsets(2:end);
+figure;
+plot(tempoTimes, tempoSamps);
+ylim([mean(tempoSamps)-20 mean(tempoSamps)+20]);
+title('Tempo');
+xlabel('time, s');
+ylabel('BPM');
+xlim([0 length(audio)/Fs]);
