@@ -31,5 +31,5 @@ for i = 1:length(onsets)
     xline(onsets(i, 1), '-r', 'LineWidth', 1);
 end
 
-figAudio_fileName = sprintf("%s_plotAudio.pdf", audio_fileName); % Generate a filename
+figAudio_fileName = sprintf("%s_onsetPlot.pdf", audio_fileName); % Generate a filename
 exportgraphics(figAudio, figAudio_fileName, 'Resolution', 600); % Save hi-res pdf graphic

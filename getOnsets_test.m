@@ -4,6 +4,7 @@ wavName = "testAudio.wav"; % our audio file
 csvName = "testMarkers.csv"; % our csv of markers for reaper
 normLevel = -3; % our normalisation level in dBFs
 windowSize = 0.2; % size of onset search window in s, try to use 0.2 for MIR framesize safety
+beatDivisions = ones(13, 1); % beat divisions for our test wav
 % ----------------------------------------------------------------
 
 % ----------------------------------------------------------------
@@ -14,7 +15,7 @@ windowSize = 0.2; % size of onset search window in s, try to use 0.2 for MIR fra
 
 % ----------------------------------------------------------------
 % Get our onsets --------
-onsets = getOnsets(windowSize, audio, Fs, markerTimes_s);
+onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, audio_fileName);
 % ----------------------------------------------------------------
 
 
@@ -23,19 +24,10 @@ onsets = getOnsets(windowSize, audio, Fs, markerTimes_s);
 plotOnsets(audio, Fs, audio_fileName, onsets);
 % ----------------------------------------------------------------
 
-% Get the tempo
-
-tempoSamps = zeros(length(onsets)-1, 1);
-for i = 1:length(onsets)-1
-    x = onsets(i);
-    xx = onsets(i+1);
-    % Get our interval
-    onsetInterval = xx - x;
-    % BPM = (60/(onsetInterval))*(beatInterval/1)
-    beatInterval = 1; % using single beats for now
-    BPM = (60/onsetInterval) * beatInterval;
-    tempoSamps(i) = BPM;
-end
+% ----------------------------------------------------------------
+% Get the tempo samples for each onset interval --------
+tempoSamples = getTempo(onsets, beatDivisions);
+% ----------------------------------------------------------------
 
 % Plot the tempo trace
 % get a list of tempo sample times

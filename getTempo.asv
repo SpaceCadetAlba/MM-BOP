@@ -1,0 +1,26 @@
+function tempoSamples = getTempo(onsets, beatDivisions)
+
+% This function returns a list of tempo estimates associated with an onset
+% list and a list of beat divisions between onsets.
+
+% Create vector to store tempo samples
+tempoSamples = zeros(length(onsets)-1, 1);
+
+% Main loop
+for i = 1:length(onsets) - 1
+    currentOnset = onsets(i);
+    
+
+
+
+tempoSamps = zeros(length(onsets)-1, 1);
+for i = 1:length(onsets)-1
+    x = onsets(i);
+    xx = onsets(i+1);
+    % Get our interval
+    onsetInterval = xx - x;
+    % BPM = (60/(onsetInterval))*(beatInterval/1)
+    beatInterval = 1; % using single beats for now
+    BPM = (60/onsetInterval) * beatInterval;
+    tempoSamps(i) = BPM;
+end

@@ -1,4 +1,4 @@
-function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s)
+function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, audio_fileName)
 % This function returns a vector of onset times associated with an audio
 % recording of an instrument.
 % For time in a list of marker times the audio file is windowed and MIR
@@ -53,5 +53,14 @@ for i = 1:nMarkers
     
     % Store our onset time
     onsets(i, 1) = currentOnset;
+    
+    % ***PROBABLY NEEDS SOME REFACTORING WHEN ADDING ONSET LIST
+    % PARTITIONING BY TAKE***
+    % ----------------
+    % Save onsets to csv
+    %onsets_fileName = sprintf('%s_fullOnsetList.csv',audio_fileName); % generate filename
+    %writematrix(onsets, onsets_fileName); % write to csv
+
+
 end
 
