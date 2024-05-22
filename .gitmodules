@@ -1,0 +1,3 @@
+[submodule "mirtoolbox"]
+	path = mirtoolbox
+	url = https://github.com/olivierlar/mirtoolbox
