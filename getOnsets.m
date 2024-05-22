@@ -1,78 +1,75 @@
 function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, onsetDetectMethod)
-% This function returns a vector of onset times associated with an audio
-% recording of an instrument.
-% For time in a list of marker times the audio file is windowed and MIR
-% toolbox (v3.1) to return onset estimates in this window returning a
-% single onset for each window, and storing the onset time value in a
-% vector of onset times to be returned.
 
-% Variables
-% Returned:
-% Vector of onset times, double vector: onsets
-% Input:
-% Size of search window around in each marker time, double, specified in
-% seconds: windowSize.
-% Audio file, double vector: audio
-% List of marker times in seconds, around which an onset search should be
-% computed, double vector: markerTimes_s
-% onsetDetectMethod: string expects 'Envelope' or 'SpectralFlux'
+% --------------------------------
+% PREAMBLE:
+%
+% getOnsets returns a list of onset times in seconds based on audio and
+% Reaper marker metadata returned by the loadResource function. This script
+% is ultimately an extension to MIRToolBox mironsets function. The
+% extension adds note partitioning based on marker times, and forces only a
+% single onset return for each note partition. 
+% ~ PC
+% --------------------------------
 
-% Get N of markers to be handled
-nMarkers = length(markerTimes_s);
+% --------------------------------
+% INPUTS:
+%   - windowSize:           double, defining the size of note partitions in seconds.
+%                           1 second windows is a recommended default value for
+%                           mironsets to work well.
+%   - audio:                vector of doubles, containing audio data.
+%   - Fs:                   double, sample rate of audio.
+%   - markerTimes_s:        vector of doubles, containing a list of marker
+%                           times in seconds.
+%   - onsetDetectMethod:    string, to pass to mironsets to define onset
+%                           detection method (i.e. 'Envelope' for amplitude-based
+%                           method, 'SpectralFlux' for frequency-based method etc).
+% --------------------------------
 
-% Initialise vector to store onsets in
-onsets = zeros(nMarkers, 1);
+% --------------------------------
+% OUTPUTS:
+%   - onsets:               double vector containing list of onset times in
+%                           seconds.
+% --------------------------------
 
-% Main loop: increment through marker times, compute onset search, return
-% onset in onsets vector
+% --------------------------------
+% SCRIPT
+% --------------------------------
+% Setup
+addpath('MIRToolBox'); % Add externals (MIRToolBox)
+
+nMarkers = length(markerTimes_s); % Get N of markers to be handled
+
+onsets = zeros(nMarkers, 1); % Create vector to store onsets.
+
+% Main loop: increment through marker times, partition audio, search for
+% onset, return onet and store in onsets vector at relevant index.
 for i = 1:nMarkers
     % Window a section of Audio
-    clipStart_s = markerTimes_s(i) - (windowSize/2); % Get start time in s
-    clipStart_samples = round(clipStart_s*Fs); % Get start sample (rounding)
-    clipEnd_s = markerTimes_s(i) + (windowSize/2); % Get end in s
-    clipEnd_samples = round(clipEnd_s*Fs); % Get end sample (rounding)
-    audioSample = audio(clipStart_samples:clipEnd_samples, 1); % chop out our audio sample
+    clipStart_s = markerTimes_s(i) - (windowSize/2); % Get start time in seconds
+    clipStart_samples = round(clipStart_s*Fs); % Get start sample (rounding to int for sample)
+    clipEnd_s = markerTimes_s(i) + (windowSize/2); % Get end time in seconds
+    clipEnd_samples = round(clipEnd_s*Fs); % Get end sample (rounding to int for sample)
+    audioSample = audio(clipStart_samples:clipEnd_samples, 1); % Window current partition
 
     % Retrieve onsets with MIR toolbox
     audioSample_MIR = miraudio(audioSample); % Convert our audio clip to MIR audio item
-
-    % Get onsets, ***We can spec method here, we are using half-wave amp env by default***
-    currentOnset = mironsets(audioSample_MIR, onsetDetectMethod); 
+    currentOnset = mironsets(audioSample_MIR, onsetDetectMethod); % Get onsets
     currentOnset = mirgetdata(currentOnset); % Return the onset in a usable format
 
-    % Run an error catch for multiple onsets returned (we only want one)
+    % Force single value return if multiple onsets are detected.
     if length(currentOnset) ~= 1 % If we are non-one
-        disp(['+++WOOPS, HERE COMES MR JELLY+++ It looks more than one onset ' ...
-            'has been returned (we only expect 1 associated with each marker. ' ...
-            'The onset nearest the start of the search window has been returned and ' ...
-            'other detected onsets have been discarded.'])
         % Solve this by returning only the onset nearest the marker
         onsetMarkerDistance = zeros(length(currentOnset), 1);
-        for k = 1:length(currentOnset)
-            a = currentOnset(k, 1);
-            b = a + clipStart_s;
-            dist = abs(markerTimes_s(i) - b);
-            onsetMarkerDistance(k, 1) = dist;         
+        for k = 1:length(currentOnset) % For each returned onset
+            currentDistance = abs(markerTimes_s(i) - currentOnset(k, 1) + clipStart_s); % calculate distance from marker
+            onsetMarkerDistance(k, 1) = currentDistance; % Store in vector of distances         
         end
-        [minValue, minIndex] = min(onsetMarkerDistance);
-        currentOnset = currentOnset(minIndex);
-
-
+        [minValue, minIndex] = min(onsetMarkerDistance); % Get index of onset nearest marker. minValue is unused but Matlab want the syntax.
+        currentOnset = currentOnset(minIndex); % Discard other onsets and return only onset nearest marker
     end
 
-    % Convert from time in our clip to absolute time
-    currentOnset = clipStart_s + currentOnset;
-    
-    % Store our onset time
-    onsets(i, 1) = currentOnset;
-    
-    % ***PROBABLY NEEDS SOME REFACTORING WHEN ADDING ONSET LIST
-    % PARTITIONING BY TAKE***
-    % ----------------
-    % Save onsets to csv
-    %onsets_fileName = sprintf('%s_fullOnsetList.csv',audio_fileName); % generate filename
-    %writematrix(onsets, onsets_fileName); % write to csv
-
-
+    currentOnset = clipStart_s + currentOnset; % Convert from time in our partition to absolute time
+    onsets(i, 1) = currentOnset; % Store our onset time
 end
+% --------------------------------
 

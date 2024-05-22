@@ -1,7 +1,7 @@
 function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel)
 
 % --------------------------------
-% Preamble:
+% PREAMBLE:
 %
 % loadResources reads and prepares audio (.wav) and marker metadata (.csv)
 % for the getOnsets function.
@@ -13,6 +13,7 @@ function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadReso
 % each marker corresponds with an onset and onset times are defined in
 % MINUTES:SECONDS syntax (rather than default MEASURES:BEATS timebase in
 % Reaper).
+% ~ PC
 % --------------------------------
 
 % --------------------------------
@@ -38,11 +39,16 @@ function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadReso
 %   - audio_fileName:   string, containing audio filename retaining path.
 % --------------------------------
 
+% --------------------------------
+% SCRIPT
+% --------------------------------
 % Read Audio File
 % --------------------------------
 % Check the audio file exists. If it doesnt, throw an error
 if isfile(wavName) ~= 1
-    error('+++DIVIDE BY CUCUMBER ERROR. PLEASE REINSTALL UNIVERSE AND REBOOT+++ (The specified wav file could not be found');
+    error(['+++DIVIDE BY CUCUMBER ERROR. PLEASE REINSTALL UNIVERSE AND ' ...
+        'REBOOT+++ (The specified wav file could not be found. Please check' ...
+        'the specified file exists in the working directory).']);
 end
 
 % Read the audio file
@@ -65,9 +71,11 @@ end
 
 % Check if we have N_channels > 2. If so grab ch 1.
 if wavMetadata.NumChannels > 2
-    disp(['+++COMPUTER WANTS A COOKIE+++ (you appear to have input a wav file with 3 or more channels.' ...
-        'This script is designed to work with mono or stereo wav stems for each instrument.' ...
-        'The script will use the first channel of the input audio file and continue.'])
+    disp(['+++COMPUTER WANTS A COOKIE+++ (You appear to have input a wav ' ...
+        'file with 3 or more channels.' ...
+        'This script is designed to work with mono or stereo wav stems.' ...
+        'The script will use the first channel of the input audio file ' ...
+        'and continue).'])
     audio = audio(:,1);
 end
 
@@ -80,7 +88,9 @@ audio = audio * (normOffset/max(abs(audio))); % normalisation to spec level.
 % --------------------------------
 % Check the file exists. If it doesnt, throw an error.
 if isfile(csvName) ~= 1
-    error('+++OUT OF CHEESE ERROR, REDO FROM START+++ (The specified csv file could not be found');
+    error(['+++OUT OF CHEESE ERROR, REDO FROM START+++ ' ...
+        '(The specified csv file could not be found. Please check the file' ...
+        'exists in the working directory.']);
 end
 
 % Load the Markers csv
@@ -102,3 +112,4 @@ end
 
 % Return the marker names.
 markerNames = markers.x_;
+% --------------------------------
