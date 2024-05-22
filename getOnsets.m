@@ -1,4 +1,4 @@
-function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, audio_fileName)
+function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, onsetDetectMethod)
 % This function returns a vector of onset times associated with an audio
 % recording of an instrument.
 % For time in a list of marker times the audio file is windowed and MIR
@@ -15,6 +15,7 @@ function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, audio_fileName
 % Audio file, double vector: audio
 % List of marker times in seconds, around which an onset search should be
 % computed, double vector: markerTimes_s
+% onsetDetectMethod: string expects 'Envelope' or 'SpectralFlux'
 
 % Get N of markers to be handled
 nMarkers = length(markerTimes_s);
@@ -36,16 +37,27 @@ for i = 1:nMarkers
     audioSample_MIR = miraudio(audioSample); % Convert our audio clip to MIR audio item
 
     % Get onsets, ***We can spec method here, we are using half-wave amp env by default***
-    currentOnset = mironsets(audioSample_MIR, 'Envelope', 'HalfWave'); 
+    currentOnset = mironsets(audioSample_MIR, onsetDetectMethod); 
     currentOnset = mirgetdata(currentOnset); % Return the onset in a usable format
 
     % Run an error catch for multiple onsets returned (we only want one)
     if length(currentOnset) ~= 1 % If we are non-one
-        disp(['+++WHOOPS, HERE COMES MR JELLY+++ It looks more than one onset ' ...
+        disp(['+++WOOPS, HERE COMES MR JELLY+++ It looks more than one onset ' ...
             'has been returned (we only expect 1 associated with each marker. ' ...
             'The onset nearest the start of the search window has been returned and ' ...
             'other detected onsets have been discarded.'])
-        currentOnset = currentOnset(1,1);
+        % Solve this by returning only the onset nearest the marker
+        onsetMarkerDistance = zeros(length(currentOnset), 1);
+        for k = 1:length(currentOnset)
+            a = currentOnset(k, 1);
+            b = a + clipStart_s;
+            dist = abs(markerTimes_s(i) - b);
+            onsetMarkerDistance(k, 1) = dist;         
+        end
+        [minValue, minIndex] = min(onsetMarkerDistance);
+        currentOnset = currentOnset(minIndex);
+
+
     end
 
     % Convert from time in our clip to absolute time
