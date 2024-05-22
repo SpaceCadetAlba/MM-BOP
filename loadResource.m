@@ -1,83 +1,69 @@
-% To Do:
-% - Double check error cases
-% - Simplify variables
-% - markerNames parsing logic?
-% - make normalisation optional - add 
-
-% Done since last version:
-% - return wav filename with path.
-
 function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel)
 
-% This function loads a wav file containing instrument capture of a
-% series of onsets, and a csv file containing marker metadata from reaper,
-% where each marker approximately tags an onset in the audio recording. The
-% script then sorts the marker times and audio file into sensible formats
-% to handle in onset detection scripts (i.e. a mono audio file, and a
-% vector of doubles for onset marker times in seconds). ~PC
-
-
-% Variables
-% --------
-% Audio file name, string: wavName
-% Reaper markers csv filename, string: csvName
-% Normalisation level in dBFS, double: normLevel
+% --------------------------------
+% Preamble:
 %
-% Return
-% --------
-% Audio file, double vector: wavFile
-% Audio sample rate, double: Fs
-% Audio resolution, double, res
-% Markers at vector of time in seconds, double vector: markerTimes_s
-% Marker names, cell array: markerNames
-% Wav filename (including path), character array: audio_fileName
-% ----------------
+% loadResources reads and prepares audio (.wav) and marker metadata (.csv)
+% for the getOnsets function.
+%
+% The audio file is expected to be a mono .wav in which onsets are
+% detected, however stereo and N_channel > 2 audio files are also handled.
+%
+% The marker metadata is expected to be a Reaper marker export .csv where
+% each marker corresponds with an onset and onset times are defined in
+% MINUTES:SECONDS syntax (rather than default MEASURES:BEATS timebase in
+% Reaper).
+% --------------------------------
 
-% Load audio file
-% --------
+% --------------------------------
+% INPUTS:
+%   - wavName:          string, defining name of .wav to be read.
+%   - csvName:          string, defining name of .csv to be read.
+%   - normLevel:        double, defining normalisation level for read .wav 
+%                       file in dBFS (-3 dBFS recommended).
+% --------------------------------
 
+% --------------------------------
+% OUTPUTS:
+%   - audio:            vector of doubles, containing audio data.
+%   - Fs:               double, sample rate of audio file.
+%   - res:              double, audio resolution (expected to be mostly
+%                       unused but handy if audio needs written).
+%   - markerTimes_s:    vector of doubles, containing marker times in
+%                       seconds.
+%   - markerNames:      cell array (strings), containing name of each
+%                       marker (expected to be mostly unused, but 
+%                       potentially useful for using marker naming logic 
+%                       for data parsing).
+%   - audio_fileName:   string, containing audio filename retaining path.
+% --------------------------------
+
+% Read Audio File
+% --------------------------------
 % Check the audio file exists. If it doesnt, throw an error
 if isfile(wavName) ~= 1
     error('+++DIVIDE BY CUCUMBER ERROR. PLEASE REINSTALL UNIVERSE AND REBOOT+++ (The specified wav file could not be found');
 end
 
 % Read the audio file
-[audio, Fs] = audioread(wavName); % load audio file wavName
+[audio, Fs] = audioread(wavName);
 
 % Get wav metadata
 wavMetadata = audioinfo(wavName);
 
-% Hold the audio resolution in case any audio writing needs done later.
-% MATLAB wants audiowrite to specify BitsPerSample or will default to
-% 16-bit with associated quantisation
+% Hold audio resolution
 res = wavMetadata.BitsPerSample;
 
-% Return the audio filename. This includes the path, which means we can
-% save our output to the same folder as input audio file
+% Return the audio filename.
 audio_fileName = wavMetadata.Filename;
 
-% This part doesnt seem like it should be needed - more a catch for people
-% making matlab errors handling wavs than anything else - it is sensible
-% for this script to rather assume input of wavs that have been correctly
-% written.
-% ----------------
-% If we have more rows than columns we assume wav channels are on rows 
-% rather than columns as expected. If this returns true transpose the
-% audio. Not really any need to throw a message here.
-
-%if size(audio,2) > size(audio, 1)
-%    audio = audio';
-%end
-% ----------------
-
-% If we have stereo audio then sum the channels
+% Check if we have stereo audio. If we do sum down to a mono stem.
 if wavMetadata.NumChannels == 2
     audio = audio(:, 1) + audio(:, 2);
     audio = audio./2;
 end
 
-
-% If we have 3 or more channels of audio we grab the first channel and return a warning.
+% Check if we have N_channels > 2. If so grab ch 1.
 if wavMetadata.NumChannels > 2
     disp(['+++COMPUTER WANTS A COOKIE+++ (you appear to have input a wav file with 3 or more channels.' ...
         'This script is designed to work with mono or stereo wav stems for each instrument.' ...
@@ -86,13 +72,12 @@ if wavMetadata.NumChannels > 2
 end
 
 % Normalisation
-% --------
+% --------------------------------
 normOffset = db2mag(normLevel); % Convert to magnitude
-audio = audio * (normOffset/max(abs(audio))); % normalisation to specified threshold
+audio = audio * (normOffset/max(abs(audio))); % normalisation to spec level.
 
 % Load Marker File
-% --------
-
+% --------------------------------
 % Check the file exists. If it doesnt, throw an error.
 if isfile(csvName) ~= 1
     error('+++OUT OF CHEESE ERROR, REDO FROM START+++ (The specified csv file could not be found');
@@ -102,25 +87,18 @@ end
 markers = readtable(csvName);
 
 % Sort the markers into a vector of marker times in seconds
-
 markerTimes = markers.Start; % Get the time variables from the marker table
 
-% Parse the time variables from the marker table. We only handle audio
-% files of less than an hour length.
+% Parse the time variables from the marker table.
 markerTimes_parsed = datevec(markerTimes, 'MM:SS.FFF');
 
-% Convert this into a column vector where each element is a marker time in
-% seconds.
 % Make a vector to store our marker time values in seconds
 markerTimes_s = zeros(length(markerTimes), 1);
 
-% Loop through the marker times and fill markerTimes_s
+% Loop through the marker times, convert to seconds, and fill markerTimes_s
 for i = 1:length(markerTimes)
-    % use minutes * 60 + seconds
     markerTimes_s(i, 1) = (markerTimes_parsed(i, 5) * 60) + markerTimes_parsed(i, 6);
 end
 
-% Return the marker names. This allows use of naming logic in onset
-% detection if required
-
+% Return the marker names.
 markerNames = markers.x_;
