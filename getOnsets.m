@@ -61,8 +61,9 @@ for i = 1:nMarkers
         % Solve this by returning only the onset nearest the marker
         onsetMarkerDistance = zeros(length(currentOnset), 1);
         for k = 1:length(currentOnset) % For each returned onset
-            currentDistance = abs(markerTimes_s(i) - currentOnset(k, 1) + clipStart_s); % calculate distance from marker
-            onsetMarkerDistance(k, 1) = currentDistance; % Store in vector of distances         
+            offset = currentOnset(k, 1) + clipStart_s;
+            dist = abs(markerTimes_s(i) - offset);
+            onsetMarkerDistance(k, 1) = dist;         
         end
         [minValue, minIndex] = min(onsetMarkerDistance); % Get index of onset nearest marker. minValue is unused but Matlab want the syntax.
         currentOnset = currentOnset(minIndex); % Discard other onsets and return only onset nearest marker
