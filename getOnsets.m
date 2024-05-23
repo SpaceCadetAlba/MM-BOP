@@ -35,7 +35,7 @@ function onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, onsetDetectMet
 % SCRIPT
 % --------------------------------
 % Setup
-addpath('MIRToolBox'); % Add externals (MIRToolBox)
+addpath('mirtoolbox'); % Add externals (MIRToolBox)
 
 nMarkers = length(markerTimes_s); % Get N of markers to be handled
 

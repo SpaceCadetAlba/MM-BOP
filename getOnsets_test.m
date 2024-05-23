@@ -5,6 +5,7 @@ csvName = "testMarkers.csv"; % our csv of markers for reaper
 normLevel = -3; % our normalisation level in dBFs
 windowSize = 0.2; % size of onset search window in s, try to use 0.2 for MIR framesize safety
 beatDivisions = ones(13, 1); % beat divisions for our test wav
+onsetDetectMethod = 'SpectralFlux';
 % ----------------------------------------------------------------
 
 % ----------------------------------------------------------------
@@ -15,22 +16,22 @@ beatDivisions = ones(13, 1); % beat divisions for our test wav
 
 % ----------------------------------------------------------------
 % Get our onsets --------
-onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, audio_fileName);
+onsets = getOnsets(windowSize, audio, Fs, markerTimes_s, onsetDetectMethod);
 % ----------------------------------------------------------------
 
 
 % ----------------------------------------------------------------
 % Plot our audio and Onsets --------
-plotOnsets(audio, Fs, audio_fileName, onsets);
+plotOnsets(audio, Fs, audio_fileName, onsets)
 % ----------------------------------------------------------------
 
 % ----------------------------------------------------------------
 % Get the tempo samples for each onset interval --------
-tempoSamples = getTempo(onsets, beatDivisions);
+[tempoSamples, tempoFit] = getTempo(onsets, beatDivisions);
 % ----------------------------------------------------------------
 
 % ----------------------------------------------------------------
 % Get the tempo samples for each onset interval --------
-plotTempo(tempoSamples, onsets, audio, Fs, audio_fileName)
+plotTempo(tempoSamples, tempoFit, audio, Fs, audio_fileName, onsets);
 % ----------------------------------------------------------------
 
