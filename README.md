@@ -1,4 +1,4 @@
-Marker Metadata - Based Onset Picking (MM-BOP)
+# Marker Metadata - Based Onset Picking (MM-BOP)
 
 These scripts act as an extension to mironsets function from the MIR Toolbox linked to this repo.
 
@@ -13,5 +13,7 @@ This is achieved by:
 Though this involves some manual pre-processing, errors are avoided, and the need for manual handling of false positive and false negative onsets in post-processing is negated.
 Fundamentally onset detection becomes more precise, and overall manual processing load is reduced.
 
-TO DO:
+### TO DO:
 - Video tutorial for Reaper audio and marker export.
+
+~PC
