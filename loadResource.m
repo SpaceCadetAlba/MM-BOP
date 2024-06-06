@@ -62,6 +62,7 @@ res = wavMetadata.BitsPerSample;
 
 % Return the audio filename.
 audio_fileName = wavMetadata.Filename;
+audio_fileName = audio_fileName(1:end-4);
 
 % Check if we have stereo audio. If we do sum down to a mono stem.
 if wavMetadata.NumChannels == 2

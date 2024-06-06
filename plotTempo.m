@@ -26,7 +26,7 @@ function plotTempo(tempoSamples, tempoFit, audio, Fs, audio_fileName, onsets)
 % --------------------------------
 tempoFig = figure; % new figure
 plot(onsets(2:end), tempoSamples, 'k-'); % Plot the tempo sample at the latter onset for each onset interval
-ylim([round(mean(tempoSamples)-(mean(tempoSamples)*0.2)) round(mean(tempoSamples)+(mean(tempoSamples)*0.2))]); % +/-20% tolerance from mean BPM as ylims
+ylim([round(mean(tempoSamples)-(mean(tempoSamples)*0.5)) round(mean(tempoSamples)+(mean(tempoSamples)*0.5))]); % +/-20% tolerance from mean BPM as ylims
 xlim([0 (length(audio))/Fs]); % Plot over the length of the audio file
 title('Tempo', 'FontSize', 24); % Sensible title and axis labels
 xlabel('Time, s');
