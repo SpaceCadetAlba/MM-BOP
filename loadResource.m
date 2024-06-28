@@ -1,4 +1,4 @@
-function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel)
+function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadResource(wavName, csvName, normLevel, SVtag)
 
 % --------------------------------
 % PREAMBLE:
@@ -20,8 +20,11 @@ function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadReso
 % INPUTS:
 %   - wavName:          string, defining name of .wav to be read.
 %   - csvName:          string, defining name of .csv to be read.
-%   - normLevel:        double, defining normalisation level for read .wav 
+%   - normLevel:        double, defining normalisation level for read .wav
 %                       file in dBFS (-3 dBFS recommended).
+%   - SVtag:            string, defining use of Sonic Visualiser Time
+%                       Instants input, and if the .csv file is in
+%                       'Samples' or 'Seconds'.
 % --------------------------------
 
 % --------------------------------
@@ -33,14 +36,20 @@ function [audio, Fs, res, markerTimes_s, markerNames, audio_fileName] = loadReso
 %   - markerTimes_s:    vector of doubles, containing marker times in
 %                       seconds.
 %   - markerNames:      cell array (strings), containing name of each
-%                       marker (expected to be mostly unused, but 
-%                       potentially useful for using marker naming logic 
+%                       marker (expected to be mostly unused, but
+%                       potentially useful for using marker naming logic
 %                       for data parsing).
 %   - audio_fileName:   string, containing audio filename retaining path.
 % --------------------------------
 
 % --------------------------------
 % SCRIPT
+%---------------------------------
+% Check Number of Input Arguments
+if nargin == 3
+    SVtag = 'none';
+end
+
 % --------------------------------
 % Read Audio File
 % --------------------------------
@@ -97,20 +106,41 @@ end
 % Load the Markers csv
 markers = readtable(csvName);
 
-% Sort the markers into a vector of marker times in seconds
-markerTimes = markers.Start; % Get the time variables from the marker table
+if matches(SVtag,'none')
+    % Sort the markers into a vector of marker times in seconds
+    markerTimes_s = markers.Start; % Get the time variables from the marker table
 
-% Parse the time variables from the marker table.
-markerTimes_parsed = datevec(markerTimes, 'MM:SS.FFF');
+    % Parse the time variables from the marker table.
+    markerTimes_parsed = datevec(markerTimes, 'MM:SS.FFF');
 
-% Make a vector to store our marker time values in seconds
-markerTimes_s = zeros(length(markerTimes), 1);
+    % Make a vector to store our marker time values in seconds
+    markerTimes_s = zeros(length(markerTimes), 1);
 
-% Loop through the marker times, convert to seconds, and fill markerTimes_s
-for i = 1:length(markerTimes)
-    markerTimes_s(i, 1) = (markerTimes_parsed(i, 5) * 60) + markerTimes_parsed(i, 6);
+    % Loop through the marker times, convert to seconds, and fill markerTimes_s
+    for i = 1:length(markerTimes)
+        markerTimes_s(i, 1) = (markerTimes_parsed(i, 5) * 60) + markerTimes_parsed(i, 6);
+    end
+
+    % Return the marker names.
+    markerNames = markers.x_;
 end
 
-% Return the marker names.
-markerNames = markers.x_;
+
+if matches(SVtag,'Samples')
+    if width(markers) == 1
+    markerNames = num2cell(1:height(markers));
+    else
+        markerNames = markers.Var2;
+    end
+    markerTimes_s = markers.Var1/Fs;    
+end
+
+if matches(SVtag,'Seconds')
+    if width(markers) == 1
+        markerNames = num2cell(1:height(markers));
+    else
+        markerNames = markers.Var2;
+    end
+    markerTimes_s = markers.Var1;
+end
 % --------------------------------
